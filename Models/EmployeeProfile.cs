@@ -7,5 +7,8 @@
         public string Position { get; set; }
         public string Department { get; set; }
         public DateTime StartDate { get; set; }
+        // Relationships
+        public User User { get; set; }
+        public List<FormInstance> FormInstances { get; set; }
     }
 }

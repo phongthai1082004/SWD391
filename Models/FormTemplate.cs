@@ -7,5 +7,9 @@
         public string Type { get; set; }
         public List<string> Fields { get; set; }
         public int CreatedByUserID { get; set; }
+        // Relationships
+        public User CreatedByUser { get; set; }
+        public List<FormInstance> FormInstances { get; set; }
+
     }
 }

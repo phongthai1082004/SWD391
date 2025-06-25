@@ -8,5 +8,7 @@
         public string ModifiedFields { get; set; }
         public DateTime Timestamp { get; set; }
         public string Editor { get; set; }
+        // Relationships
+        public User User { get; set; }
     }
 }

@@ -6,5 +6,8 @@
         public int TemplateID { get; set; }
         public int ProfileID { get; set; }
         public Dictionary<string, string> FilledData { get; set; }
+        // Relationships
+        public FormTemplate FormTemplate { get; set; }
+        public EmployeeProfile EmployeeProfile { get; set; }
     }
 }

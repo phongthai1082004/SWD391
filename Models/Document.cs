@@ -8,5 +8,7 @@
         public string FilePath { get; set; }
         public DateTime UploadDate { get; set; }
         public bool Verified { get; set; }
+        // Relationships
+        public User User { get; set; }
     }
 }

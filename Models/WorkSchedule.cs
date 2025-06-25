@@ -6,5 +6,7 @@
         public int UserID { get; set; }
         public DateTime Date { get; set; }
         public string Shift { get; set; }
+        // Relationships
+        public User User { get; set; }
     }
 }

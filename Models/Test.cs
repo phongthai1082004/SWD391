@@ -6,5 +6,7 @@
         public string Title { get; set; }
         public string Position { get; set; }
         public string Frequency { get; set; }
+        // Relationships
+        public List<TestResult> TestResults { get; set; }
     }
 }

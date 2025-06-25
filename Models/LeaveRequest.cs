@@ -8,5 +8,8 @@
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public string Status { get; set; }
+        // Relationships
+        public User User { get; set; }
+        public User Approver { get; set; }
     }
 }
