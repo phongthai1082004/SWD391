@@ -1,4 +1,5 @@
-﻿using Assignment1.Models;
+﻿using Assignment1.Data;
+using Assignment1.Models;
 using Assignment1.Models.DTOs;
 using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
@@ -16,18 +17,21 @@ namespace Assignment1.Controllers
     public class UserApiController : ControllerBase
     {
         // Mapper
-
+        private readonly AppDbContext _appDbContext;
         private readonly IMapper _mapper;
-        public UserApiController(IMapper mapper)
+        public UserApiController(AppDbContext appDbContext, IMapper mapper)
         {
             _mapper = mapper;
+            _appDbContext = appDbContext;
         }
+
+
 
         // Get All
         [HttpGet]
         public ActionResult<IEnumerable<User>> GetUsers()
         {
-            return Ok(Datastore.Users.ToList());
+            return Ok(_appDbContext.Users.ToList());
         }
 
         // Get by ID
@@ -43,7 +47,7 @@ namespace Assignment1.Controllers
                 return BadRequest("Invalid ID provided.");
             }
 
-            var user = Datastore.Users.FirstOrDefault(u => u.UserID == UserId);
+            var user = _appDbContext.Users.FirstOrDefault(u => u.UserID == UserId);
             if (user != null)
             {
                 return Ok(user);
@@ -70,7 +74,7 @@ namespace Assignment1.Controllers
                 return BadRequest(userDto);
             }
 
-            if (Datastore.Users.FirstOrDefault(u => u.UserID == userDto.UserID) != null)
+            if (_appDbContext.Users.FirstOrDefault(u => u.UserID == userDto.UserID) != null)
             {
                 ModelState.AddModelError("ExistedError", "User is existed!");
                 return BadRequest(ModelState);
@@ -81,9 +85,9 @@ namespace Assignment1.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            userDto.UserID = Datastore.Users.OrderByDescending(u => u.UserID).FirstOrDefault()?.UserID + 1 ?? 1;
+            userDto.UserID = _appDbContext.Users.OrderByDescending(u => u.UserID).FirstOrDefault()?.UserID + 1 ?? 1;
             var user = _mapper.Map<User>(userDto);
-            Datastore.Users.Add(user);
+            _appDbContext.Users.Add(user);
             return Ok(userDto);
         }
 
@@ -98,13 +102,13 @@ namespace Assignment1.Controllers
                 return BadRequest();
             }
 
-            var user = Datastore.Users.FirstOrDefault(u => u.UserID == UserID);
+            var user = _appDbContext.Users.FirstOrDefault(u => u.UserID == UserID);
 
             if (user == null)
             {
                 return NotFound();
             }
-            Datastore.Users.Remove(user);
+            _appDbContext.Users.Remove(user);
             return NoContent();
         }
 
@@ -125,7 +129,7 @@ namespace Assignment1.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = Datastore.Users.FirstOrDefault(u => u.UserID == UserId);
+            var user = _appDbContext.Users.FirstOrDefault(u => u.UserID == UserId);
             if (user == null)
             {
                 return NotFound($"User with ID {UserId} not found.");
@@ -152,7 +156,7 @@ namespace Assignment1.Controllers
                 return BadRequest("Invalid patch data provided.");
             }
 
-            var user = Datastore.Users.FirstOrDefault(u => u.UserID == UserId);
+            var user = _appDbContext.Users.FirstOrDefault(u => u.UserID == UserId);
             if (user == null)
             {
                 return NotFound($"User with ID {UserId} not found.");
