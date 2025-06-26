@@ -1,7 +1,7 @@
 ﻿
 
 using Assignment1.Models;
-using Assignment1.Models.DTOs;
+using Assignment1.Models.DTOs.User;
 using AutoMapper;
 
 namespace Assignment1
@@ -10,8 +10,8 @@ namespace Assignment1
     {
         public MappingConfig()
         {
-            CreateMap<UserDTO, User>();
-            CreateMap<User, UserDTO>(); // nếu cần map ngược
+            CreateMap<UserCreateDTO, User>();
+            CreateMap<User, UserCreateDTO>(); // nếu cần map ngược
         }
     }
 }

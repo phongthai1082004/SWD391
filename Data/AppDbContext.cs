@@ -17,7 +17,7 @@ namespace Assignment1.Data
                 .HasOne(u => u.Role)
                 .WithMany(u => u.Users)
                 .HasForeignKey(u => u.RoleID)
-                .IsRequired() // BẮT BUỘC phải có Role
+                //.IsRequired() // BẮT BUỘC phải có Role
                 .OnDelete(DeleteBehavior.Restrict); // Không xóa người dùng khi xóa vai trò để tránh mất dữ liệu người dùng
             modelBuilder.Entity<User>()
                 .HasOne(u => u.EmployeeProfile)
