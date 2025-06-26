@@ -1,187 +1,85 @@
-﻿using Assignment1.Data;
-using Assignment1.Models;
-using Assignment1.Models.DTOs;
-using AutoMapper;
-using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Exceptions;
+﻿using Assignment1.Models;
+using Assignment1.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Assignment1.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
 {
+    private readonly IUserService _userService;
 
-
-
-    [ApiController] // Validatation required this shit
-    // [Route("api/[controller]")]
-    [Route("api/UserAPI")]
-    public class UserApiController : ControllerBase
+    public UsersController(IUserService userService)
     {
-        // Mapper
-        private readonly AppDbContext _appDbContext;
-        private readonly IMapper _mapper;
-        public UserApiController(AppDbContext appDbContext, IMapper mapper)
-        {
-            _mapper = mapper;
-            _appDbContext = appDbContext;
-        }
+        _userService = userService;
+    }
 
+    // GET: api/Users
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll()
+    {
+        var users = await _userService.GetAllAsync();
+        return Ok(users);
+    }
 
+    // GET: api/Users/5
+    [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Get(int id)
+    {
+        var user = await _userService.GetByIdAsync(id);
+        if (user == null)
+            return NotFound($"User with ID {id} not found.");
 
-        // Get All
-        [HttpGet]
-        public ActionResult<IEnumerable<User>> GetUsers()
-        {
-            return Ok(_appDbContext.Users.ToList());
-        }
+        return Ok(user);
+    }
 
-        // Get by ID
+    // POST: api/Users
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Create([FromBody] User user)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        [HttpGet("{UserId:int}", Name = "GetUser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<User> GetUser(int UserId)
-        {
-            if (UserId <= 0)
-            {
-                return BadRequest("Invalid ID provided.");
-            }
+        await _userService.CreateAsync(user);
+        return CreatedAtAction(nameof(Get), new { id = user.Id }, user);
+    }
 
-            var user = _appDbContext.Users.FirstOrDefault(u => u.UserID == UserId);
-            if (user != null)
-            {
-                return Ok(user);
-            }
-            else
-            {
-                return NotFound($"User with ID {UserId} not found.");
-            }
-        }
+    // PUT: api/Users/5
+    [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(int id, [FromBody] User user)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        // Create User
+        if (id != user.UserID)
+            return BadRequest("ID mismatch between route and body.");
 
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<User> CreateUser([FromBody] UserDTO userDto)
-        {
-            // Check userDTO
-            if (userDto == null)
-            {
-                return BadRequest(userDto);
-            }
+        var existing = await _userService.GetByIdAsync(id);
+        if (existing == null)
+            return NotFound($"User with ID {id} not found.");
 
-            if (_appDbContext.Users.FirstOrDefault(u => u.UserID == userDto.UserID) != null)
-            {
-                ModelState.AddModelError("ExistedError", "User is existed!");
-                return BadRequest(ModelState);
-            }
+        await _userService.UpdateAsync(user);
+        return NoContent();
+    }
 
-            if (userDto.UserID > 0)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+    // DELETE: api/Users/5
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var existing = await _userService.GetByIdAsync(id);
+        if (existing == null)
+            return NotFound($"User with ID {id} not found.");
 
-            userDto.UserID = _appDbContext.Users.OrderByDescending(u => u.UserID).FirstOrDefault()?.UserID + 1 ?? 1;
-            var user = _mapper.Map<User>(userDto);
-            _appDbContext.Users.Add(user);
-            return Ok(userDto);
-        }
-
-        // Delete User 
-
-        [HttpDelete("{UserId:int}", Name = "DeleteUser")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult DeleteUser(int UserID)
-        {
-            if (UserID == 0)
-            {
-                return BadRequest();
-            }
-
-            var user = _appDbContext.Users.FirstOrDefault(u => u.UserID == UserID);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-            _appDbContext.Users.Remove(user);
-            return NoContent();
-        }
-
-        // Cập nhật toàn bộ thông tin người dùng
-        [HttpPatch("{UserId:int}", Name = "UpdateUser")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult UpdateUser(int UserId, [FromBody] UserDTO userDto)
-        {
-            if (userDto == null || UserId != userDto.UserID)
-            {
-                return BadRequest("Invalid user data provided.");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var user = _appDbContext.Users.FirstOrDefault(u => u.UserID == UserId);
-            if (user == null)
-            {
-                return NotFound($"User with ID {UserId} not found.");
-            }
-
-            user.Name = userDto.Name;
-            user.Email = userDto.Email;
-            user.Password = userDto.Password;
-            user.RoleID = userDto.RoleID;
-            user.Status = userDto.Status;
-
-            return NoContent(); // 204
-        }
-
-        // Cập nhật một phần thông tin người dùng (JSON Patch)
-        [HttpPatch("partial/{UserId:int}", Name = "UpdatePartialUser")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult UpdatePartialUser(int UserId, [FromBody] JsonPatchDocument<UserDTO> patchDTO)
-        {
-            if (patchDTO == null)
-            {
-                return BadRequest("Invalid patch data provided.");
-            }
-
-            var user = _appDbContext.Users.FirstOrDefault(u => u.UserID == UserId);
-            if (user == null)
-            {
-                return NotFound($"User with ID {UserId} not found.");
-            }
-
-            var userToPatch = _mapper.Map<UserDTO>(user);
-
-            try
-            {
-                patchDTO.ApplyTo(userToPatch, ModelState);
-            }
-            catch (JsonPatchException ex)
-            {
-                return BadRequest($"Error applying patch: {ex.Message}");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            _mapper.Map(userToPatch, user);
-
-            return NoContent(); // 204
-        }
+        await _userService.DeleteAsync(id);
+        return NoContent();
     }
 }
-

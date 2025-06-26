@@ -93,6 +93,33 @@ namespace Assignment1.Data
                 .WithMany(u => u.ApprovedRequests)
                 .HasForeignKey(lr => lr.ApproverID)
                 .OnDelete(DeleteBehavior.Restrict); // hoặc SetNull nếu không bắt buộc có người duyệt
+
+
+            // Config Base Entity
+
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+                {
+                    var builder = modelBuilder.Entity(entityType.ClrType);
+
+                    // ID tự sinh Guid khi không truyền
+                    builder.Property(nameof(BaseEntity.Id))
+                           .HasDefaultValueSql("NEWID()");
+
+                    // Name là nullable (có thể bỏ qua)
+                    builder.Property(nameof(BaseEntity.Name))
+                           .IsRequired(false);
+
+                    // CreatedAt mặc định là thời gian hiện tại
+                    builder.Property(nameof(BaseEntity.CreatedAt))
+                           .HasDefaultValueSql("GETUTCDATE()");
+
+                    // UpdatedAt mặc định là thời gian hiện tại
+                    builder.Property(nameof(BaseEntity.UpdatedAt))
+                           .HasDefaultValueSql("GETUTCDATE()");
+                }
+            }
         }
     }
 }
