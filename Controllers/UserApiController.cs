@@ -23,14 +23,14 @@ public class UsersController : ControllerBase
     }
 
     // GET: api/Users/5
-    [HttpGet("{id}")]
+    [HttpGet("{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Get(int id)
+    public async Task<IActionResult> Get(int userId)
     {
-        var user = await _userService.GetByIdAsync(id);
+        var user = await _userService.GetByIdAsync(userId);
         if (user == null)
-            return NotFound($"User with ID {id} not found.");
+            return NotFound($"User with ID {userId} not found.");
 
         return Ok(user);
     }
@@ -45,41 +45,41 @@ public class UsersController : ControllerBase
             return BadRequest(ModelState);
 
         await _userService.CreateAsync(user);
-        return CreatedAtAction(nameof(Get), new { id = user.Id }, user);
+        return CreatedAtAction(nameof(Get), new { userId = user.UserID }, user);
     }
 
     // PUT: api/Users/5
-    [HttpPut("{id}")]
+    [HttpPut("{userId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(int id, [FromBody] User user)
+    public async Task<IActionResult> Update(int userId, [FromBody] User user)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        if (id != user.UserID)
-            return BadRequest("ID mismatch between route and body.");
+        if (userId != user.UserID)
+            return BadRequest("UserID mismatch between route and body.");
 
-        var existing = await _userService.GetByIdAsync(id);
+        var existing = await _userService.GetByIdAsync(userId);
         if (existing == null)
-            return NotFound($"User with ID {id} not found.");
+            return NotFound($"User with ID {userId} not found.");
 
         await _userService.UpdateAsync(user);
         return NoContent();
     }
 
     // DELETE: api/Users/5
-    [HttpDelete("{id}")]
+    [HttpDelete("{userId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int userId)
     {
-        var existing = await _userService.GetByIdAsync(id);
+        var existing = await _userService.GetByIdAsync(userId);
         if (existing == null)
-            return NotFound($"User with ID {id} not found.");
+            return NotFound($"User with ID {userId} not found.");
 
-        await _userService.DeleteAsync(id);
+        await _userService.DeleteAsync(userId);
         return NoContent();
     }
 }
