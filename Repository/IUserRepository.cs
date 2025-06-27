@@ -2,5 +2,8 @@
 
 namespace Assignment1.Repository
 {
-    public interface IUserRepository : IBaseRepository<User> { }
+    public interface IUserRepository : IBaseRepository<User>
+    {
+        Task<List<User>> GetUsersWithRolesAsync();
+    }
 }

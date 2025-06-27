@@ -1,4 +1,5 @@
 ﻿using Assignment1.Models;
+using Assignment1.Models.DTOs.Role;
 using Assignment1.Models.DTOs.User;
 using Assignment1.Repository;
 
@@ -7,9 +8,9 @@ namespace Assignment1.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepo;
-        private readonly IBaseRepository<Role> _roleRepo;
+        private readonly IBaseRepository<RoleResponseDTO> _roleRepo;
 
-        public UserService(IUserRepository userRepo, IBaseRepository<Role> roleRepo)
+        public UserService(IUserRepository userRepo, IBaseRepository<RoleResponseDTO> roleRepo)
         {
             _userRepo = userRepo;
             _roleRepo = roleRepo;
@@ -89,7 +90,7 @@ namespace Assignment1.Services
 
         public async Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync()
         {
-            var users = await _userRepo.GetAllAsync();
+            var users = await _userRepo.GetUsersWithRolesAsync();
             return users.Select(u => new UserResponseDTO
             {
                 UserID = u.UserID,
